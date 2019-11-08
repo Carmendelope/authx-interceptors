@@ -1,5 +1,18 @@
 /*
- * Copyright (C) 2019 Nalej - All Rights Reserved
+ * Copyright 2019 Nalej
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 package apikey
@@ -10,11 +23,10 @@ import (
 	"time"
 )
 
-
 // DefaultTokenTTL with a default TTL
 const DefaultTokenTTL = time.Hour
 
-type InMemoryAPIKeyAccess struct{
+type InMemoryAPIKeyAccess struct {
 	// Mutex for managing mockup access.
 	sync.Mutex
 	// token map with the join tokens and their expiration date.
@@ -24,34 +36,34 @@ type InMemoryAPIKeyAccess struct{
 }
 
 // NewInMemoryAPIKeyAccess with the default TTL.
-func NewInMemoryAPIKeyAccess() * InMemoryAPIKeyAccess{
+func NewInMemoryAPIKeyAccess() *InMemoryAPIKeyAccess {
 	return &InMemoryAPIKeyAccess{
 		token: make(map[string]int64, 0),
-		ttl: DefaultTokenTTL,
+		ttl:   DefaultTokenTTL,
 	}
 }
 
 // Add a new token
-func (ima * InMemoryAPIKeyAccess) Add(token string){
+func (ima *InMemoryAPIKeyAccess) Add(token string) {
 	ima.Lock()
 	ima.token[token] = time.Now().Add(ima.ttl).Unix()
 	ima.Unlock()
 }
 
 // Connect to the appropriate backend.
-func (ima * InMemoryAPIKeyAccess)Connect() derrors.Error{
+func (ima *InMemoryAPIKeyAccess) Connect() derrors.Error {
 	return nil
 }
 
 // Check if the API Key is valid
-func (ima * InMemoryAPIKeyAccess) IsValid(apiKey string) derrors.Error{
+func (ima *InMemoryAPIKeyAccess) IsValid(apiKey string) derrors.Error {
 	ima.Lock()
 	defer ima.Unlock()
 	expire, exists := ima.token[apiKey]
-	if exists{
-		if expire >= time.Now().Unix(){
+	if exists {
+		if expire >= time.Now().Unix() {
 			return nil
-		}else{
+		} else {
 			// Expire the token
 			delete(ima.token, apiKey)
 		}
@@ -59,7 +71,7 @@ func (ima * InMemoryAPIKeyAccess) IsValid(apiKey string) derrors.Error{
 	return derrors.NewUnauthenticatedError("invalid token")
 }
 
-func (ima * InMemoryAPIKeyAccess) Clear() {
+func (ima *InMemoryAPIKeyAccess) Clear() {
 	ima.Lock()
 	ima.token = make(map[string]int64, 0)
 	ima.Unlock()

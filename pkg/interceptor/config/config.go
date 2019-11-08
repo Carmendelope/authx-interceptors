@@ -1,5 +1,18 @@
 /*
- * Copyright (C) 2018 Nalej - All Rights Reserved
+ * Copyright 2019 Nalej
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 package config
@@ -21,12 +34,12 @@ type AuthorizationConfig struct {
 	Permissions map[string]Permission `json:"permissions"`
 }
 
+// LoadAuthorizationConfig creates an AuthorizationConfig using the JSON representation found in a given file.
 func LoadAuthorizationConfig(path string) (*AuthorizationConfig, derrors.Error) {
 	dat, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, derrors.NewInvalidArgumentError("impossible read config file", err)
 	}
-
 	authCfg := &AuthorizationConfig{}
 	jErr := json.Unmarshal(dat, authCfg)
 	if jErr != nil {
@@ -40,9 +53,9 @@ func LoadAuthorizationConfig(path string) (*AuthorizationConfig, derrors.Error) 
 type Config struct {
 	Authorization *AuthorizationConfig
 	// Secret contains the shared secret with the authx component to sign the JWT token.
-	Secret        string
+	Secret string
 	// Name of the header where the token is found.
-	Header        string
+	Header string
 	// Number of cached entries for group secrets
 	NumCacheEntries int
 }
@@ -50,12 +63,11 @@ type Config struct {
 // NewConfig creates a new instance of the structure.
 func NewConfig(config *AuthorizationConfig,
 	secret string, header string) *Config {
-
 	return &Config{Authorization: config, Secret: secret, Header: header, NumCacheEntries: DefaultCacheEntries}
 }
 
-// authorizePrimitive checks for the set of required primitives.
-func (c * Config) AuthorizePrimitive(method string, primitives []string) derrors.Error {
+// AuthorizePrimitive checks for the set of required primitives.
+func (c *Config) AuthorizePrimitive(method string, primitives []string) derrors.Error {
 	permission, ok := c.Authorization.Permissions[method]
 	if !ok {
 		if c.Authorization.AllowsAll {
@@ -63,11 +75,9 @@ func (c * Config) AuthorizePrimitive(method string, primitives []string) derrors
 		}
 		return derrors.NewUnauthenticatedError("unauthorized method").WithParams(method)
 	}
-
 	valid := permission.Valid(primitives)
 	if !valid {
 		return derrors.NewUnauthenticatedError("unauthorized method").WithParams(method)
 	}
-
 	return nil
 }

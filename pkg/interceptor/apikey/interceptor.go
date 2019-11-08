@@ -1,5 +1,18 @@
 /*
- * Copyright (C) 2019 Nalej - All Rights Reserved
+ * Copyright 2019 Nalej
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
  */
 
 package apikey
@@ -20,7 +33,7 @@ func WithAPIKeyInterceptor(apiKeyAccess APIKeyAccess, config *config.Config) grp
 	return grpc.UnaryInterceptor(keyInterceptor(apiKeyAccess, config))
 }
 
-func keyInterceptor(apiKeyAccess APIKeyAccess, config *config.Config) grpc.UnaryServerInterceptor{
+func keyInterceptor(apiKeyAccess APIKeyAccess, config *config.Config) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context,
 		req interface{},
 		info *grpc.UnaryServerInfo,
@@ -31,7 +44,7 @@ func keyInterceptor(apiKeyAccess APIKeyAccess, config *config.Config) grpc.Unary
 		if ok {
 			// Extract the API token.
 			tk, err := extractToken(ctx, config)
-			if err != nil{
+			if err != nil {
 				return nil, conversions.ToGRPCError(derrors.NewUnauthenticatedError("token is not supplied"))
 			}
 			// Check the claim using the extracted token.
@@ -60,7 +73,7 @@ func keyInterceptor(apiKeyAccess APIKeyAccess, config *config.Config) grpc.Unary
 }
 
 // ExtractToken obtains the token from the Authorization header.
-func extractToken(ctx context.Context, config *config.Config) (*string, derrors.Error){
+func extractToken(ctx context.Context, config *config.Config) (*string, derrors.Error) {
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, derrors.NewInternalError("impossible to extract metadata")
@@ -74,9 +87,9 @@ func extractToken(ctx context.Context, config *config.Config) (*string, derrors.
 }
 
 // CheckToken checks that the token is valid
-func checkToken(token string, keyAccess APIKeyAccess) (*KeyClaim, derrors.Error){
-	err :=  keyAccess.IsValid(token)
-	if err != nil{
+func checkToken(token string, keyAccess APIKeyAccess) (*KeyClaim, derrors.Error) {
+	err := keyAccess.IsValid(token)
+	if err != nil {
 		return nil, err
 	}
 	return NewDefaultKeyClaim(), nil
